@@ -10,7 +10,9 @@
 
 #include <arpa/inet.h>
 #include <cstring>
+#include <iostream>
 #include <netinet/in.h>
+#include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -19,13 +21,14 @@ class Server
 	public:
 		Server();
 		///TEST FUNCTION
-		int testServer();
-
+		int testServerHello();
+		int testServerEcho();
+		int testServerFileDownload(char* filename);
 		///
 		virtual ~Server();
 
 	private:
-		int httpd;
+
 };
 
 #endif /* SERVER_H_ */
