@@ -12,6 +12,8 @@
 #include <cstring>
 #include <iostream>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -24,11 +26,19 @@ class Server
 		int testServerHello();
 		int testServerEcho();
 		int testServerFileDownload(char* filename);
+		int testMultiThread();
 		///
 		virtual ~Server();
 
 	private:
+		typedef struct clientArgs
+		{
+			int clientSocket;
+			std::string clientIP;
+			int clientPort;
 
+		}clientArgs;
+		static void* testMultiThreadFunction(void* testMultiThreadArgs);
 };
 
 #endif /* SERVER_H_ */
