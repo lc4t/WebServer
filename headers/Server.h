@@ -10,6 +10,7 @@
 
 #include <arpa/inet.h>
 #include <cstring>
+#include "Http.h"
 #include <iostream>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -18,27 +19,36 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define SERVER_PORT 8888
+#define SERVER_CLIENT_NUM 3
+
 class Server
 {
-	public:
-		Server();
-		///TEST FUNCTION
-		int testServerHello();
-		int testServerEcho();
-		int testServerFileDownload(char* filename);
-		int testMultiThread();
-		///
-		virtual ~Server();
+    public:
+        Server();
+        // TEST FUNCTION
+        int testServerHello();
+        int testServerEcho();
+        int testServerFileDownload(char* filename);
+        int testMultiThread();
+        ///
 
-	private:
-		typedef struct clientArgs
-		{
-			int clientSocket;
-			std::string clientIP;
-			int clientPort;
+        int start();
+        static void* clientHandle(void* clientArgsVoid);
+        virtual ~Server();
 
-		}clientArgs;
-		static void* testMultiThreadFunction(void* testMultiThreadArgs);
+    private:
+        typedef struct clientArgs
+        {
+            int clientSocket;
+            std::string clientIP;
+            int clientPort;
+        }clientArgs;
+        // TEST FUNCTION
+        static void* testMultiThreadFunction(void* testMultiThreadArgs);
+        //
+
+        FILE* httpAnalyse(std::string receiveStr);
 };
 
 #endif /* SERVER_H_ */

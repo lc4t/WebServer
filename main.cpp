@@ -8,6 +8,7 @@ int main(int argc, const char** argv)
 	Server* server = new Server();
 //	server->testServerFileDownload("/home/lc4t/Documents/git/WebServer/example.conf");
 //	server->testServerEcho();
-	server->testMultiThread();
+	// server->testMultiThread();
+    server->start();
 	return 0;
 }
