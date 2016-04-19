@@ -14,7 +14,7 @@ Response::Response()
 
 Response::Response(Request request)
 {
-    this -> http = http;
+    this -> request = request;
 }
 
 Request Response::getRequest()

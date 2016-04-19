@@ -32,6 +32,7 @@ class Server
         int testServerEcho();
         int testServerFileDownload(char* filename);
         int testMultiThread();
+        int testResponse();
         ///
 
         int start();

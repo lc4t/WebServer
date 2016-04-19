@@ -9,6 +9,7 @@ int main(int argc, const char** argv)
 //	server->testServerFileDownload("/home/lc4t/Documents/git/WebServer/example.conf");
 //	server->testServerEcho();
 	// server->testMultiThread();
-    server->start();
+    // server->start();
+    server->testResponse();
 	return 0;
 }

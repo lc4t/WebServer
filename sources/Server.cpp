@@ -104,7 +104,7 @@ void* Server::clientHandle(void* clientArgsVoid)
     	}
 
     	std::memset(&receiveStr, 0, sizeof(receiveStr));
-        if (response.getHttp().isEnd())
+        if (response.getRequest().isEnd())
         {
         	break;
         }        
@@ -300,6 +300,56 @@ void* Server::testMultiThreadFunction(void* testMultiThreadArgs)
     }
     std::cout << "CLOSE:" << clientSocketArgs->clientIP << ":" << clientSocketArgs->clientPort << std::endl;
     close(clientSocketArgs -> clientSocket);
+}
+
+int Server::testResponse()
+{
+    int serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);        // create socket
+    struct sockaddr_in serverAddr;                                        // bind IP/port
+    std::memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;                                    // IPV4
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");                // bind IP
+    serverAddr.sin_port = htons(8888);                                    // bind port
+    bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+
+    listen(serverSocket, 20);
+
+
+    // Receive from client
+    while(true)
+    {
+        struct sockaddr_in clientAddr;
+        socklen_t clientAddrSize = sizeof(clientAddr);
+        int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
+
+        // response to client
+        char responseStr[8192] = {0};
+
+        sprintf(responseStr, "%s%s", responseStr, "HTTP/1.1 200 OK\r\n");
+        sprintf(responseStr, "%s%s", responseStr, "Date: Sat, 31 Dec 2005 23:59:59 GMT\r\n");
+        sprintf(responseStr, "%s%s", responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
+        sprintf(responseStr, "%s%s", responseStr, "HTTP/1.1 200 OK\r\n");
+        sprintf(responseStr, "%s%s", responseStr, "Content-Length: 122\r\n");
+        sprintf(responseStr, "%s%s", responseStr, "\r\n");
+
+        sprintf(responseStr, "%s%s", responseStr, "<body>test<body>");
+        {
+            // read(clientSocket, &receiveStr, sizeof(receiveStr));
+            // std::cout << receiveStr << std::endl;
+
+            std::cout << write(clientSocket, &responseStr, sizeof(responseStr)) << std::endl;
+            std::memset(&responseStr, 0, sizeof(responseStr));
+        }
+        close(clientSocket);
+    }
+
+
+
+    // Close socket
+
+    close(serverSocket);
+
+    return 0;
 }
 
 Server::~Server()
