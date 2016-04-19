@@ -9,7 +9,7 @@
 
 Http::Http()
 {
-    this -> length = 0;
+    this -> requestlength = 0;
     this -> doubleRN = false;
 }
 
@@ -18,7 +18,7 @@ bool Http::addHeader(std::string str)
 
     // std::cout << "Header(" << str.length() << ") ";
     // std::cout << "(" << str << ")" << std::endl;
-
+    this -> requestlength += str.length();
     if (str == "\r\n")
     {
         std::cout << "receive: \\r\\n" << std::endl;
@@ -137,6 +137,7 @@ bool Http::addHeader(std::string str)
     }
     else
     {
+        std::cout << "set request line here-->" << std::endl;
         return this -> setRequestLine(str);
     }
 }
@@ -172,25 +173,48 @@ bool Http::isEnd()
 
 bool Http::setRequestLine(std::string requestLine)
 {
-    std::cout << "<*" << requestLine << "*>" << std::endl;
+    // std::cout << "<*" << requestLine << "*>" << std::endl;
     int length = requestLine.length();
-    std::string split[3];
-    for (int leftPos = 0, rightPos = 0, count = 0; rightPos < length, count < 3; rightPos++) 
-    // count is make to split, left right pos is to find a slipt
+    if (length < 14)
     {
-        if (requestLine[rightPos] == ' ' || requestLine[rightPos] == '\r')
-        { 
-            split[count++] = requestLine.substr(leftPos, rightPos - leftPos);
-            leftPos = rightPos + 1;
-            // std::cout << split[count - 1] << std::endl;
-        }
+        std::cout << "Not request line." << std::endl;
+        return false;
     }
-    this -> method = split[0];
-    this -> path = this -> requestPathAnalyse(split[1]);  
-    this -> params = this -> requestParamsAnalyse(split[1]);  
-    this -> version = split[2];
-    this->headers["requestLine"] = true;
-    return true;
+    std::string split[3];
+    try
+    {
+        for (int leftPos = 0, rightPos = 0, count = 0; rightPos < length && count < 3; rightPos++) 
+        // count is make to split, left right pos is to find a slipt
+        {
+            if (requestLine[rightPos] == ' ' || requestLine[rightPos] == '\r')
+            { 
+                split[count++] = requestLine.substr(leftPos, rightPos - leftPos);
+                leftPos = rightPos + 1;
+                // std::cout << split[count - 1] << std::endl;
+            }
+        }
+        this -> method = split[0];
+        if (this -> method != "GET")
+        {
+            return false;
+        }
+        this -> path = this -> requestPathAnalyse(split[1]);  
+        this -> params = this -> requestParamsAnalyse(split[1]);  
+        this -> version = split[2];
+        this->headers["requestLine"] = true;    
+
+        std::cout << "Add headers request line done: " << std::endl;
+        return true;
+    }
+    catch(std::exception& e)
+    {
+        std::cout << "Standard exception: " << e.what() << std::endl;  
+        return false;
+    }
+    std::cout << "kkkk" << std::endl;
+    return false;
+
+    
 }
 
 
@@ -240,7 +264,7 @@ std::pair<std::string, std::string> Http::requestPathAnalyse(std::string str)
         path.first = str.substr(0, virgulePos + 1);
         if (questionMarkPos != -1 && questionMarkPos - virgulePos > 1)
         {
-            path.second = str.substr(questionMarkPos + 1 , questionMarkPos - virgulePos);
+            path.second = str.substr(virgulePos + 1 , questionMarkPos - virgulePos - 1);
         }
         else
         {

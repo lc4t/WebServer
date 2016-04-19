@@ -55,6 +55,7 @@ int Server::start()
         void** status;
         pthread_join(thread, status);
     }
+
     int shutdownThreadRet = shutdown(serverSocket,SHUT_WR);
     if (shutdownThreadRet == -1)
     {
@@ -62,7 +63,6 @@ int Server::start()
     }
 
     // Close socket
-
     close(serverSocket);
 
     return 0;
@@ -92,12 +92,13 @@ void* Server::clientHandle(void* clientArgsVoid)
     		receiveStr[i++] = c;
     		if (c == '\n')
     		{
-    			// std::cout << "(\\n)";
     			if (!http.addHeader(receiveStr))
     			{
 					std::cout << "Cannot add headers: " << receiveStr << std::endl;
 				}
-				break;
+                break;
+    //             std::memset(&receiveStr, 0, sizeof(receiveStr));
+				// continue;
     		}
     	}
 
@@ -107,10 +108,10 @@ void* Server::clientHandle(void* clientArgsVoid)
         	break;
         }        
     }
-    // if (http.getStatus() == true)
-    // {
-    // 	std::cout << "get ,I will send your data." << std::endl;
-    // }
+
+    // write data
+    // write(clientSocketArgs -> clientSocket, &str, sizeof(str));
+
     std::cout << "CLOSE:" << clientSocketArgs -> clientIP << ":" << clientSocketArgs -> clientPort << std::endl;
     close(clientSocketArgs -> clientSocket);
 }
