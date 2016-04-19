@@ -70,7 +70,8 @@ int Server::start()
 
 void* Server::clientHandle(void* clientArgsVoid)
 {
-	Http http;
+	Response response;
+    // Http http;
 	clientArgs* clientSocketArgs = reinterpret_cast<clientArgs*>(clientArgsVoid);
     char receiveStr[8192] = {0};
     while(true)
@@ -92,7 +93,7 @@ void* Server::clientHandle(void* clientArgsVoid)
     		receiveStr[i++] = c;
     		if (c == '\n')
     		{
-    			if (!http.addHeader(receiveStr))
+    			if (!response.getRequest().addHeader(receiveStr))
     			{
 					std::cout << "Cannot add headers: " << receiveStr << std::endl;
 				}
@@ -103,7 +104,7 @@ void* Server::clientHandle(void* clientArgsVoid)
     	}
 
     	std::memset(&receiveStr, 0, sizeof(receiveStr));
-        if (http.isEnd())
+        if (response.getHttp().isEnd())
         {
         	break;
         }        

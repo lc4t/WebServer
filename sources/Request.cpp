@@ -1,19 +1,19 @@
 /*
- * Http.cpp
+ * Request.cpp
  *
  *  Created on: 2016年4月16日
  *      Author: lc4t
  */
 
-#include "../headers/Http.h"
+#include "../headers/Request.h"
 
-Http::Http()
+Request::Request()
 {
     this -> requestlength = 0;
     this -> doubleRN = false;
 }
 
-bool Http::addHeader(std::string str)
+bool Request::addHeader(std::string str)
 {
 
     // std::cout << "Header(" << str.length() << ") ";
@@ -142,7 +142,7 @@ bool Http::addHeader(std::string str)
     }
 }
 
-FILE* Http::analyse(std::string receiveStr)
+FILE* Request::analyse(std::string receiveStr)
 {
     // std::cout << receiveStr.length() << std::endl;
     // std::cout << receiveStr << std::endl;
@@ -156,13 +156,13 @@ FILE* Http::analyse(std::string receiveStr)
 }
 
 
-// bool Http::getStatus()
+// bool Request::getStatus()
 // {
 //     return false;
 // }
 
 
-bool Http::isEnd()
+bool Request::isEnd()
 {
     if (this -> getMethod() == "GET")
     {
@@ -171,7 +171,7 @@ bool Http::isEnd()
     return true;
 }
 
-bool Http::setRequestLine(std::string requestLine)
+bool Request::setRequestLine(std::string requestLine)
 {
     // std::cout << "<*" << requestLine << "*>" << std::endl;
     int length = requestLine.length();
@@ -218,13 +218,13 @@ bool Http::setRequestLine(std::string requestLine)
 }
 
 
-bool Http::isSet(std::string key)
+bool Request::isSet(std::string key)
 {
     return (this->headers.find(key) != this->headers.end());
 }
 
 
-std::string Http::getMethod()
+std::string Request::getMethod()
 {
     if (isSet("requestLine"))
     {
@@ -237,7 +237,7 @@ std::string Http::getMethod()
 }
 
 
-std::pair<std::string, std::string> Http::requestPathAnalyse(std::string str)
+std::pair<std::string, std::string> Request::requestPathAnalyse(std::string str)
 {  
     std::pair<std::string, std::string> path;
     int length = str.length();
@@ -283,7 +283,7 @@ std::pair<std::string, std::string> Http::requestPathAnalyse(std::string str)
     return path;
 }
 
-std::map<std::string, std::string> Http::requestParamsAnalyse(std::string str)
+std::map<std::string, std::string> Request::requestParamsAnalyse(std::string str)
 {
     std::cout << "params: " << str << std::endl;
     std::map<std::string, std::string> params;
@@ -354,3 +354,5 @@ std::map<std::string, std::string> Http::requestParamsAnalyse(std::string str)
     }
     return params;
 }
+
+

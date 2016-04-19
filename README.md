@@ -7,3 +7,4 @@ A WebServer, c++
 2016.4.16 #3: test multi thread visit
 2016.4.17 #4: GET method, get path, file, params and some headers,but no cookie 
 2016.4.19 #5: repair bugs
+2016.4.19 #6: rename Http -> Request
