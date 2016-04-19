@@ -11,6 +11,7 @@ Request::Request()
 {
     this -> requestlength = 0;
     this -> doubleRN = false;
+    this -> status = true;
 }
 
 bool Request::addHeader(std::string str)
@@ -166,7 +167,7 @@ bool Request::isEnd()
 {
     if (this -> getMethod() == "GET")
     {
-        return this -> doubleRN;
+        return this -> doubleRN && this -> status;
     }
     return true;
 }
@@ -178,6 +179,7 @@ bool Request::setRequestLine(std::string requestLine)
     if (length < 14)
     {
         std::cout << "Not request line." << std::endl;
+        this -> status = false;
         return false;
     }
     std::string split[3];
@@ -196,6 +198,7 @@ bool Request::setRequestLine(std::string requestLine)
         this -> method = split[0];
         if (this -> method != "GET")
         {
+            this -> status = false;
             return false;
         }
         this -> path = this -> requestPathAnalyse(split[1]);  
@@ -209,9 +212,9 @@ bool Request::setRequestLine(std::string requestLine)
     catch(std::exception& e)
     {
         std::cout << "Standard exception: " << e.what() << std::endl;  
+        this -> status = false;
         return false;
     }
-    std::cout << "kkkk" << std::endl;
     return false;
 
     

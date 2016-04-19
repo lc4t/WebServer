@@ -106,14 +106,39 @@ void* Server::clientHandle(void* clientArgsVoid)
     	std::memset(&receiveStr, 0, sizeof(receiveStr));
         if (response.getRequest().isEnd())
         {
+            std::cout << "send response --> " << std::endl;
+            char responseStr[8192] = {0};
+
+            sprintf(responseStr, "%s%s", responseStr, "HTTP/1.1 200 OK\r\n");
+            sprintf(responseStr, "%s%s", responseStr, "Date: Sat, 31 Dec 2005 23:59:59 GMT\r\n");
+            sprintf(responseStr, "%s%s", responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
+
+            sprintf(responseStr, "%s%s", responseStr, "\r\n");
+            std::cout << write(clientSocketArgs -> clientSocket, &responseStr, strlen(responseStr)) << std::endl;
+            std::memset(&responseStr, 0, sizeof(responseStr));
+
+            FILE *fp = fopen("/home/lc4t/Documents/git/WebServer/html/200.html", "rb");
+            if (fp == NULL)
+            {
+                std::cout << "Cannot open file " << "/home/lc4t/Documents/git/WebServer/html/200.html" << std::endl;
+                break;
+            }
+            char buffer[8192];
+            int nCount = 0;
+            while( (nCount = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+            {
+                std::cout << write(clientSocketArgs -> clientSocket, &buffer, nCount) << std::endl;    // must nCount, not sizeof it
+            }
+            std::memset(&buffer, 0, sizeof(buffer));
         	break;
-        }        
+        }
     }
 
     // write data
     // write(clientSocketArgs -> clientSocket, &str, sizeof(str));
 
     std::cout << "CLOSE:" << clientSocketArgs -> clientIP << ":" << clientSocketArgs -> clientPort << std::endl;
+    shutdown(clientSocketArgs -> clientSocket,  SHUT_RDWR);
     close(clientSocketArgs -> clientSocket);
 }
 
@@ -139,6 +164,7 @@ int Server::testServerHello()
     write(clientSocket, &str, sizeof(str));
 
     // Close socket
+    shutdown(clientSocket,  SHUT_RDWR);
     close(clientSocket);
     close(serverSocket);
 
@@ -174,6 +200,7 @@ int Server::testServerEcho()
             write(clientSocket, &receiveStr, sizeof(receiveStr));
             std::memset(&receiveStr, 0, sizeof(receiveStr));
         }
+        shutdown(clientSocket,  SHUT_RDWR);
         close(clientSocket);
     }
 
@@ -222,7 +249,9 @@ int Server::testServerFileDownload(char* filename)
 
 
     // Close socket
+    shutdown(clientSocket,  SHUT_RDWR);
     close(clientSocket);
+    
     close(serverSocket);
 
     return 0;
@@ -299,6 +328,7 @@ void* Server::testMultiThreadFunction(void* testMultiThreadArgs)
         std::memset(&receiveStr, 0, sizeof(receiveStr));
     }
     std::cout << "CLOSE:" << clientSocketArgs->clientIP << ":" << clientSocketArgs->clientPort << std::endl;
+    shutdown(clientSocket,  SHUT_RDWR);
     close(clientSocketArgs -> clientSocket);
 }
 
@@ -322,24 +352,34 @@ int Server::testResponse()
         socklen_t clientAddrSize = sizeof(clientAddr);
         int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
 
-        // response to client
+
         char responseStr[8192] = {0};
+
 
         sprintf(responseStr, "%s%s", responseStr, "HTTP/1.1 200 OK\r\n");
         sprintf(responseStr, "%s%s", responseStr, "Date: Sat, 31 Dec 2005 23:59:59 GMT\r\n");
         sprintf(responseStr, "%s%s", responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
-        sprintf(responseStr, "%s%s", responseStr, "HTTP/1.1 200 OK\r\n");
-        sprintf(responseStr, "%s%s", responseStr, "Content-Length: 122\r\n");
+
+
         sprintf(responseStr, "%s%s", responseStr, "\r\n");
+        std::cout << write(clientSocket, &responseStr, strlen(responseStr)) << std::endl;
+        std::memset(&responseStr, 0, sizeof(responseStr));
 
-        sprintf(responseStr, "%s%s", responseStr, "<body>test<body>");
+        FILE *fp = fopen("/home/lc4t/Documents/git/WebServer/html/200.html", "rb");
+        if (fp == NULL)
         {
-            // read(clientSocket, &receiveStr, sizeof(receiveStr));
-            // std::cout << receiveStr << std::endl;
-
-            std::cout << write(clientSocket, &responseStr, sizeof(responseStr)) << std::endl;
-            std::memset(&responseStr, 0, sizeof(responseStr));
+            std::cout << "Cannot open file " << "/home/lc4t/Documents/git/WebServer/html/200.html" << std::endl;
+            return -1;
         }
+        char buffer[8192];
+        int nCount = 0;
+        while( (nCount = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+        {
+            std::cout << write(clientSocket, &buffer, nCount) << std::endl;    // must nCount, not sizeof it
+        }
+        std::memset(&buffer, 0, sizeof(buffer));
+            
+        shutdown(clientSocket,  SHUT_RDWR);
         close(clientSocket);
     }
 

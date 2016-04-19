@@ -9,3 +9,4 @@ A WebServer, c++
 2016.4.19 #5: repair bugs
 2016.4.19 #6: rename Http -> Request
 2016.4.19 #7: test response
+2016.4.19 #8: add response test to main, repair shutdown client socket

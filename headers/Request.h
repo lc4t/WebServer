@@ -59,7 +59,7 @@ class Request
         std::pair<std::string, std::string> requestPathAnalyse(std::string str);
         std::map<std::string, std::string> requestParamsAnalyse(std::string str);
 
-
+        bool status;
 
 };
 
