@@ -8,15 +8,19 @@
 #ifndef RESPONSE_H_
 #define RESPONSE_H_
 
+#include <assert.h>
 #include "Request.h"
 
 class Response
 {
     public:
         Response();
-        Response(Request request);
-        Request getRequest();
-        Request request;
+        // Response(Request request);
+        Request* getRequest();
+        
+
+        char* getResponseHeaders();
+        FILE* getPage();
     private:
         // Response Headers
         std::string Cache_Control;
@@ -32,6 +36,16 @@ class Response
         std::string Transfer_Encoding;//:chunked
         std::string X_Powered_By;//:PHP/5.4.24
         // Response end
+        int status;
+        bool setPage();
+        FILE* page;
+        char* status200();
+        char* status403();
+        char* status404();
+        char* status500();
+        char* responseStr;
+
+        Request* request;
 };
 
 

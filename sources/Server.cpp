@@ -76,7 +76,7 @@ void* Server::clientHandle(void* clientArgsVoid)
     char receiveStr[8192] = {0};
     while(true)
     {	
-    	
+    	std::memset(&receiveStr, 0, sizeof(receiveStr));
     	// receive timeout
     	struct timeval timeout = {3, 0};
     	if (setsockopt(clientSocketArgs -> clientSocket, SOL_SOCKET,SO_RCVTIMEO, (char*)&timeout,sizeof(struct timeval)) == -1)
@@ -93,34 +93,33 @@ void* Server::clientHandle(void* clientArgsVoid)
     		receiveStr[i++] = c;
     		if (c == '\n')
     		{
-    			if (!response.getRequest().addHeader(receiveStr))
+                // std::cout << "Add: " << receiveStr << std::endl;
+    			if (!response.getRequest()->addHeader(receiveStr))
     			{
 					std::cout << "Cannot add headers: " << receiveStr << std::endl;
 				}
                 break;
-    //             std::memset(&receiveStr, 0, sizeof(receiveStr));
-				// continue;
     		}
     	}
-
-    	std::memset(&receiveStr, 0, sizeof(receiveStr));
-        if (response.getRequest().isEnd())
+        if (response.getRequest()->isEnd())
         {
             std::cout << "send response --> " << std::endl;
-            char responseStr[8192] = {0};
+            
 
-            sprintf(responseStr, "%s%s", responseStr, "HTTP/1.1 200 OK\r\n");
-            sprintf(responseStr, "%s%s", responseStr, "Date: Sat, 31 Dec 2005 23:59:59 GMT\r\n");
-            sprintf(responseStr, "%s%s", responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
-
-            sprintf(responseStr, "%s%s", responseStr, "\r\n");
-            std::cout << write(clientSocketArgs -> clientSocket, &responseStr, strlen(responseStr)) << std::endl;
+            char* responseStr = new char[8192];
+            responseStr = response.getResponseHeaders();
+            // std::cout << responseStr << std::endl;
+            
+            std::cout << write(clientSocketArgs -> clientSocket, responseStr, strlen(responseStr)) << std::endl;
             std::memset(&responseStr, 0, sizeof(responseStr));
 
-            FILE *fp = fopen("/home/lc4t/Documents/git/WebServer/html/200.html", "rb");
+            
+            // FILE *fp = fopen("/home/lc4t/Documents/git/WebServer/html/200.html", "rb");
+            
+            FILE *fp = response.getPage();
             if (fp == NULL)
             {
-                std::cout << "Cannot open file " << "/home/lc4t/Documents/git/WebServer/html/200.html" << std::endl;
+                std::cout << "Server return NULL file" << std::endl;
                 break;
             }
             char buffer[8192];
@@ -130,12 +129,10 @@ void* Server::clientHandle(void* clientArgsVoid)
                 std::cout << write(clientSocketArgs -> clientSocket, &buffer, nCount) << std::endl;    // must nCount, not sizeof it
             }
             std::memset(&buffer, 0, sizeof(buffer));
-        	break;
+            break;
+            
         }
     }
-
-    // write data
-    // write(clientSocketArgs -> clientSocket, &str, sizeof(str));
 
     std::cout << "CLOSE:" << clientSocketArgs -> clientIP << ":" << clientSocketArgs -> clientPort << std::endl;
     shutdown(clientSocketArgs -> clientSocket,  SHUT_RDWR);
@@ -328,7 +325,7 @@ void* Server::testMultiThreadFunction(void* testMultiThreadArgs)
         std::memset(&receiveStr, 0, sizeof(receiveStr));
     }
     std::cout << "CLOSE:" << clientSocketArgs->clientIP << ":" << clientSocketArgs->clientPort << std::endl;
-    shutdown(clientSocket,  SHUT_RDWR);
+    shutdown(clientSocketArgs -> clientSocket,  SHUT_RDWR);
     close(clientSocketArgs -> clientSocket);
 }
 

@@ -10,3 +10,4 @@ A WebServer, c++
 2016.4.19 #6: rename Http -> Request
 2016.4.19 #7: test response
 2016.4.19 #8: add response test to main, repair shutdown client socket
+2016.4.21 #9: 404 200 default get ok

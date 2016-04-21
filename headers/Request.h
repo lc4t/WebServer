@@ -6,10 +6,13 @@
  */
 #ifndef REQUEST_H_
 #define REQUEST_H_
+#include <assert.h>
 #include <cstring>
 #include <exception>
 #include <iostream>
+#include <iterator>
 #include <map>
+#include <set>
 #include <stdio.h>
 
 class Request
@@ -17,10 +20,17 @@ class Request
     public:
         Request();
         bool addHeader(std::string str);
-        FILE* analyse(std::string receiveStr);
+        // FILE* analyse(std::string receiveStr);
         // bool getStatus();
+        bool Test();
         bool isEnd();
-
+        std::string getMethod();
+        std::string getPath();
+        std::string getFile();
+        std::map<std::string, std::string> getParams();
+        std::string getVersion();
+        std::string getHeaderByName(std::string str);
+        std::map<std::string, std::string> getCookies();
     private:
         // Request Headers
         std::string method; // 
@@ -29,8 +39,8 @@ class Request
         std::string version;
 
         int requestlength;                             // current length, contain \r\n
-        std::map<std::string, bool> headers;    // is set
-        
+        // std::map<std::string, int> headers;    // is set
+        std::set<std::string> headers;
         std::string Host;
         std::string User_Agent;
         std::string Accept;
@@ -47,14 +57,9 @@ class Request
 
         // POST params
         // Request end
-
-        
-
-
-
         bool setRequestLine(std::string requestLine);
-        bool isSet(std::string);
-        std::string getMethod();
+        bool isSetHeaders(std::string key);
+        // std::string getMethod();
 
         std::pair<std::string, std::string> requestPathAnalyse(std::string str);
         std::map<std::string, std::string> requestParamsAnalyse(std::string str);

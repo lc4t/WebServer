@@ -9,9 +9,15 @@
 
 Request::Request()
 {
-    this -> requestlength = 0;
-    this -> doubleRN = false;
-    this -> status = true;
+    this->requestlength = 0;
+    this->doubleRN = false;
+    this->status = true;
+    
+}
+
+bool Request::Test()
+{
+    return this->doubleRN;
 }
 
 bool Request::addHeader(std::string str)
@@ -19,17 +25,19 @@ bool Request::addHeader(std::string str)
 
     // std::cout << "Header(" << str.length() << ") ";
     // std::cout << "(" << str << ")" << std::endl;
-    this -> requestlength += str.length();
+    this->requestlength += str.length();
     if (str == "\r\n")
     {
         std::cout << "receive: \\r\\n" << std::endl;
-        this -> doubleRN = true;
+        this->doubleRN = true;
+        // std::cout << "TEST:" << this->Test() << std::endl;
         return true;
     }
-    if (this -> isSet("requestLine"))
+    if (this->isSetHeaders("requestLine"))
     {
         std::string key;
         std::string value;
+        // std::cout << str << std::endl;
         int length = str.length();   // key:value
         for (int i = 0; i < length; i++)
         {
@@ -38,215 +46,225 @@ bool Request::addHeader(std::string str)
                 key = str.substr(0, i);
                 value = str.substr(i + 2, length - i - 2 - 2);   // -2 because \r\n
                 
-                // std::cout << "<" << key << ">"<< std::endl;
-                // std::cout << "<" << value << ">" << std::endl;
+                std::cout << "<" << key << ">"<< std::endl;
+                std::cout << "<" << value << ">" << std::endl;
                 if (key == "Host")
                 {
-                    this -> Host = value; 
-                    this -> headers[key] = true;
+                    this->Host = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key <<": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "User-Agent" )
                 {
-                    this -> User_Agent = value; 
-                    this -> headers[key] = true;
+                    this->User_Agent = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Accept")
                 {
-                    this -> Accept = value; 
-                    this -> headers[key] = true;
+                    this->Accept = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Accept-Language" )
                 {
-                    this -> Accept_Language = value; 
-                    this -> headers[key] = true;
+                    this->Accept_Language = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Accept-Encoding")
                 {
-                    this -> Accept_Encoding = value; 
-                    this -> headers[key] = true;
+                    this->Accept_Encoding = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Keep-Alive")
                 {
-                    this -> Keep_Alive = value; 
-                    this -> headers[key] = true;
+                    this->Keep_Alive = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Connection" )
                 {
-                    this -> Connection = value; 
-                    this -> headers[key] = true;
+                    this->Connection = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Pragma" )
                 {
-                    this -> Pragma = value; 
-                    this -> headers[key] = true;
+                    this->Pragma = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Cache-Control")
                 {
-                    this -> Cache_Control = value; 
-                    this -> headers[key] = true;
+                    this->Cache_Control = value; 
+                    this->headers.insert(key);
 
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "Upgrade-Insecure-Requests")
                 {
-                    this -> Upgrade_Insecure_Requests = value; 
-                    this -> headers[key] = true;
-
+                    // std::cout << "test here" << std::endl;
+                    this->Upgrade_Insecure_Requests = value; 
+                    this->headers.insert(key);
+                    // std::cout << "test headers 2" << std::endl;
                     // std::cout << "set " << key << ": " << value << std::endl;
-                    return true;
+
                 }
                 else if (key == "cookie")
                 {
                     //
-                    // this -> Cookie['Cookie'] = formatCookie(value);
+                    // this->Cookie['Cookie'] = formatCookie(value);
                     std::cout << "cookie " << value << std::endl;
-                    this -> headers[key] = true;
-                    return true;
+                    this->headers.insert(key);
+
                 }
                 else
                 {
                     std::cout << "Unknow headers." << std::endl;
-                    return false;
+
                 }
+                return true;
             }
         }
     }
     else
     {
-        std::cout << "set request line here-->" << std::endl;
-        return this -> setRequestLine(str);
+        // std::cout << "set request line here-->" << std::endl;
+        if (this->setRequestLine(str))
+        {
+            // std::cout << "headers ok!" << std::endl;
+            return true;
+        }
+        else
+        {
+            // std::cout << "cannot add headers." << std::endl;
+            return false;
+        }
     }
 }
 
-FILE* Request::analyse(std::string receiveStr)
-{
-    // std::cout << receiveStr.length() << std::endl;
-    // std::cout << receiveStr << std::endl;
-    char filename[] = "/home/lc4t/Documents/git/WebServer/html/200.html";
-    FILE* fp = fopen(filename, "rb");
-    if (fp == NULL)
-    {
-        std::cout << "Cannot open file " << filename << std::endl;
-    }
-    return fp;
-}
 
-
-// bool Request::getStatus()
-// {
-//     return false;
-// }
 
 
 bool Request::isEnd()
 {
-    if (this -> getMethod() == "GET")
+    // std::cout << "END??" << this->doubleRN << "&" << this->status << std::endl;
+    if (this->getMethod() == "GET")
     {
-        return this -> doubleRN && this -> status;
+        return this->doubleRN && this->status;
     }
-    return true;
+
+    return false;
 }
 
 bool Request::setRequestLine(std::string requestLine)
 {
-    // std::cout << "<*" << requestLine << "*>" << std::endl;
+    std::cout << "<*" << requestLine << "*>" << std::endl;
     int length = requestLine.length();
-    if (length < 14)
+    if (length < 14 || length > 2048)
     {
         std::cout << "Not request line." << std::endl;
-        this -> status = false;
+        this->status = false;
         return false;
     }
     std::string split[3];
-    try
+    // try
+    // {
+    for (int leftPos = 0, rightPos = 0, count = 0; rightPos < length && count < 3; rightPos++) 
+    // count is make to split, left right pos is to find a slipt
     {
-        for (int leftPos = 0, rightPos = 0, count = 0; rightPos < length && count < 3; rightPos++) 
-        // count is make to split, left right pos is to find a slipt
-        {
-            if (requestLine[rightPos] == ' ' || requestLine[rightPos] == '\r')
-            { 
-                split[count++] = requestLine.substr(leftPos, rightPos - leftPos);
-                leftPos = rightPos + 1;
-                // std::cout << split[count - 1] << std::endl;
-            }
+        if (requestLine[rightPos] == ' ' || requestLine[rightPos] == '\r')
+        { 
+            split[count++] = requestLine.substr(leftPos, rightPos - leftPos);
+            leftPos = rightPos + 1;
+            // std::cout << split[count - 1] << std::endl;
         }
-        this -> method = split[0];
-        if (this -> method != "GET")
-        {
-            this -> status = false;
-            return false;
-        }
-        this -> path = this -> requestPathAnalyse(split[1]);  
-        this -> params = this -> requestParamsAnalyse(split[1]);  
-        this -> version = split[2];
-        this->headers["requestLine"] = true;    
-
-        std::cout << "Add headers request line done: " << std::endl;
-        return true;
     }
-    catch(std::exception& e)
+    this->method = split[0];
+    if (this->method != "GET")
     {
-        std::cout << "Standard exception: " << e.what() << std::endl;  
-        this -> status = false;
+        this->status = false;
         return false;
     }
-    return false;
+    this->path = this->requestPathAnalyse(split[1]);
+    // std::cout << "207: path.first:" << this->path.first << std::endl;
+    this->params = this->requestParamsAnalyse(split[1]);  
+    this->version = split[2];
+    this->headers.insert("requestLine");
+    // std::cout << "205: this>headers>requestLine" << this->headers["requestLine"] << std::endl;
+    // std::cout << "Add headers request line done! " << std::endl;
+    return true;
+    // }
+    // catch(std::exception& e)
+    // {
+    //     std::cout << "Standard exception: " << e.what() << std::endl;  
+    //     this->status = false;
+    //     return false;
+    // }
+    // return false;
 
     
 }
 
 
-bool Request::isSet(std::string key)
+bool Request::isSetHeaders(std::string key)
 {
-    return (this->headers.find(key) != this->headers.end());
-}
-
-
-std::string Request::getMethod()
-{
-    if (isSet("requestLine"))
+    // std::cout << "isset: " << key << " " << this->headers[key] << std::endl;
+    if (this->headers.find(key) == this->headers.end())
     {
-        return this -> method;
+        // std::cout << "isset: " << key << " " << 0 << std::endl;
+        return false;
     }
     else
     {
-        return "";
+        // std::cout << "isset: " << key << " " << 1 << std::endl;
+        return true;
+
     }
+    // std::map<std::string, bool>::iterator iter;
+    // iter = this->headers.find(key);
+    // if (iter != this->headers.end())
+    // {
+    //     std::cout << "isset: " << key << " 1 " << this->headers[key] << std::endl;
+    //     return true;
+    // }
+    // else
+    // {
+    //     std::cout << "isset: " << key << " 2 " << this->headers[key] << std::endl;
+    //     return false;
+    // }
 }
+
+
+
 
 
 std::pair<std::string, std::string> Request::requestPathAnalyse(std::string str)
 {  
     std::pair<std::string, std::string> path;
     int length = str.length();
-    int questionMarkPos = -1;// = str.length() - 1 - 2;  // ? pass \r\n
+    int questionMarkPos = -1;// 
     int virgulePos = -1;//= str.length() - 1 - 2;      // /
-    for (int i = length - 1 - 2; i >= 0; i--)
+    for (int i = length - 1; i >= 0; i--)
     {
         if (str[i] == '/')
         {   // /, /index.php /asd/index.php?a=b
@@ -260,12 +278,20 @@ std::pair<std::string, std::string> Request::requestPathAnalyse(std::string str)
         {
             questionMarkPos = i;
         }
+        else
+        {
+
+        }
         
     }
     if (virgulePos != -1)
     {
         path.first = str.substr(0, virgulePos + 1);
         if (questionMarkPos != -1 && questionMarkPos - virgulePos > 1)
+        {
+            path.second = str.substr(virgulePos + 1 , questionMarkPos - virgulePos - 1);
+        }
+        else if (questionMarkPos == -1 && length - virgulePos > 1)
         {
             path.second = str.substr(virgulePos + 1 , questionMarkPos - virgulePos - 1);
         }
@@ -288,7 +314,7 @@ std::pair<std::string, std::string> Request::requestPathAnalyse(std::string str)
 
 std::map<std::string, std::string> Request::requestParamsAnalyse(std::string str)
 {
-    std::cout << "params: " << str << std::endl;
+    std::cout << "params init: " << str << std::endl;
     std::map<std::string, std::string> params;
     // /?123123123
     int length = str.length();
@@ -358,4 +384,84 @@ std::map<std::string, std::string> Request::requestParamsAnalyse(std::string str
     return params;
 }
 
+
+
+std::string Request::getMethod()
+{
+    if (this->isSetHeaders("requestLine"))
+    {
+        return this->method;
+    }
+    else
+    {
+        return "";
+    }
+}
+
+std::string Request::getPath()
+{
+    if (this->isSetHeaders("requestLine"))
+    {
+        return this->path.first;
+    }
+    else
+    {
+        //  error 
+        return "";
+    }
+}
+
+
+std::string Request::getFile()
+{
+    if (this->isSetHeaders("requestLine"))
+    {
+        return this->path.second;
+    }
+    else
+    {
+        //  error 
+        return "";
+    }
+}
+
+
+std::map<std::string, std::string> Request::getParams()
+{
+    return this->params;
+}
+
+
+std::string Request::getVersion()
+{
+    if (this->version != "")
+    {
+        return this->version;
+    }
+    else
+    {
+        //  error 
+        return "";
+    }
+}
+
+std::string Request::getHeaderByName(std::string str)
+{
+    std::map<std::string, std::string>::iterator iter;
+    iter = this->params.find(str);
+    if (iter != this->params.end())
+    {
+        return iter->second;
+    }
+    else
+    {
+        return "";
+    }
+}
+
+
+std::map<std::string, std::string> Request::getCookies()
+{
+    return this->Cookie;
+}
 
