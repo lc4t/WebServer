@@ -12,9 +12,9 @@ Response::Response()
     request = new Request();
     time_t t =  time(0);
     char timeStr[64];
-    strftime(timeStr, sizeof(timeStr), "%a, %d %b %Y %X %Z", localtime(&t));
+    strftime(timeStr, sizeof(timeStr), "%a, %d %b %Y %T %Z", localtime(&t));
     this->Date = timeStr;
-
+    this->Content_Type = "Content-Type: ";
     this->responseStr = new char[8192];
     std::memset(this->responseStr, 0, sizeof(this->responseStr));
     this->status = -1;
@@ -36,6 +36,38 @@ char* Response::getResponseHeaders()
 {
     if (this->request->isEnd())
     {
+        std::string filename = this->request->getFile();
+        std::string fileType = "";
+        for (int i = filename.length() -  1; i >= 0; i--)
+        {
+            if (filename[i] == '.')
+            {
+                fileType = filename.substr(i);
+                break;
+            }
+        }
+
+        if (fileType == ".html")
+        {
+            this->Content_Type += "text/html";
+        }
+        else if (fileType == ".png")
+        {
+            this->Content_Type += "image/png";
+        }
+        else if (fileType == ".txt")
+        {
+            this->Content_Type += "text/plain";
+        }
+        else if (fileType == ".jpg")
+        {
+            this->Content_Type += "image/jpeg";
+        }
+        else
+        {
+            this->Content_Type += "text/plain";
+        }
+
         this->status = 200;
         // return this->status200();
     }
@@ -66,7 +98,8 @@ char* Response::status200()
     sprintf(this->responseStr, "%s%s", this->responseStr, "HTTP/1.1 200 OK\r\n");
     sprintf(this->responseStr, "%s%s", this->responseStr, this->Date.data());
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
-    sprintf(this->responseStr, "%s%s", this->responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
+    sprintf(this->responseStr, "%s%s", this->responseStr, this->Content_Type.data());
+    sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     // add more
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     return this->responseStr;
@@ -79,7 +112,8 @@ char* Response::status403()
     sprintf(this->responseStr, "%s%s", this->responseStr, "HTTP/1.1 403 Forbidden\r\n");
     sprintf(this->responseStr, "%s%s", this->responseStr, this->Date.data());
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
-    sprintf(this->responseStr, "%s%s", this->responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
+    sprintf(this->responseStr, "%s%s", this->responseStr, this->Content_Type.data());
+    sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     // add more
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     return this->responseStr;
@@ -92,7 +126,8 @@ char* Response::status404()
     sprintf(this->responseStr, "%s%s", this->responseStr, "HTTP/1.1 404 Not Found\r\n");
     sprintf(this->responseStr, "%s%s", this->responseStr, this->Date.data());
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
-    sprintf(this->responseStr, "%s%s", this->responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
+    sprintf(this->responseStr, "%s%s", this->responseStr, this->Content_Type.data());
+    sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     // add more
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     return this->responseStr;
@@ -104,7 +139,8 @@ char* Response::status500()
     sprintf(this->responseStr, "%s%s", this->responseStr, "HTTP/1.1 500 Internal Server Error\r\n");
     sprintf(this->responseStr, "%s%s", this->responseStr, this->Date.data());
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
-    sprintf(this->responseStr, "%s%s", this->responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
+    sprintf(this->responseStr, "%s%s", this->responseStr, this->Content_Type.data());
+    sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     // add more
     sprintf(this->responseStr, "%s%s", this->responseStr, "\r\n");
     return this->responseStr;
@@ -122,6 +158,9 @@ bool Response::setPage()
         std::cout << "list dir-->, but not safe" << std::endl;
         this->status = 403;
     }
+
+    // if (this->request->getFile())
+    // sprintf(this->responseStr, "%s%s", this->responseStr, "Content-Type: text/html;charset=ISO-8859-1\r\n");
 
     switch(this->status)
     {

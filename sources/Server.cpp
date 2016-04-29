@@ -24,8 +24,6 @@ int Server::start()
 
     listen(serverSocket, SERVER_CLIENT_NUM);
     std::cout << "Listen @ " << SERVER_PORT << std::endl;
-    // Receive from client
-    // int count = 0;
     while(true)
     {
     	std::cout << "Waiting new connection" << std::endl;
@@ -71,7 +69,6 @@ int Server::start()
 void* Server::clientHandle(void* clientArgsVoid)
 {
 	Response response;
-    // Http http;
 	clientArgs* clientSocketArgs = reinterpret_cast<clientArgs*>(clientArgsVoid);
     char receiveStr[8192] = {0};
     while(true)
@@ -108,7 +105,7 @@ void* Server::clientHandle(void* clientArgsVoid)
 
             char* responseStr = new char[8192];
             responseStr = response.getResponseHeaders();
-            // std::cout << responseStr << std::endl;
+            // std::cout << "test#2: " << responseStr << std::endl;
             
             std::cout << write(clientSocketArgs -> clientSocket, responseStr, strlen(responseStr)) << std::endl;
             std::memset(&responseStr, 0, sizeof(responseStr));

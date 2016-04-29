@@ -12,3 +12,4 @@ A WebServer, c++
     2016.4.19 #8: add response test to main, repair shutdown client socket
     2016.4.21 #9: 404 200 default get ok
     2016.4.22 #9: gitignore
+    2016.4.30 #10: add content type judge, png/jpg/html/txt ok
