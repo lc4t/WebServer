@@ -35,7 +35,7 @@ class Server
         ///
 
         int start();
-        static void* clientHandle(void* clientArgsVoid);
+        
         virtual ~Server();
 
     private:
@@ -46,10 +46,10 @@ class Server
             int clientPort;
         }clientArgs;
         // TEST FUNCTION
+        static void* clientHandle(void* clientArgsVoid);
         static void* testMultiThreadFunction(void* testMultiThreadArgs);
         //
 
-        FILE* httpAnalyse(std::string receiveStr);
 };
 
 #endif /* SERVER_H_ */
