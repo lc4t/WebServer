@@ -18,26 +18,34 @@ int Server::start()
     struct sockaddr_in serverAddr;                                        // bind IP/port
     std::memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;                                    // IPV4
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");                // bind IP
+    serverAddr.sin_addr.s_addr = inet_addr(LOCALHOST_IP);                // bind IP
     serverAddr.sin_port = htons(SERVER_PORT);                                    // bind port
     bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 
     listen(serverSocket, SERVER_CLIENT_NUM);
-    std::cout << "Listen @ " << SERVER_PORT << std::endl;
+    #ifdef DEBUG
+        std::cout << "1#:Listen @ " << SERVER_PORT << std::endl;
+    #endif
     while(true)
     {
-    	std::cout << "Waiting new connection" << std::endl;
+        #ifdef DEBUG
+    	   std::cout << "2#:Waiting new connection" << std::endl;
+        #endif
         struct sockaddr_in clientAddr;
         socklen_t clientAddrSize = sizeof(clientAddr);
         int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
-        if (clientSocket == -1)
+        if (clientSocket == ERROR_EXIT)
         {
-            std::cout << "Accept Error." << std::endl;
+            #ifdef DEBUG
+                std::cout << "3#:Accept Error." << std::endl;
+            #endif
             continue;
         }
         else
         {
-            std::cout << "ACCEPT: " << inet_ntoa(clientAddr.sin_addr) << ":" << clientAddr.sin_port << std::endl;
+            #ifdef DEBUG
+                std::cout << "4#:ACCEPT: " << inet_ntoa(clientAddr.sin_addr) << ":" << clientAddr.sin_port << std::endl;
+            #endif
         }
         clientArgs* clientArgsVoid = new clientArgs;
         clientArgsVoid -> clientSocket = clientSocket;
@@ -45,19 +53,23 @@ int Server::start()
         clientArgsVoid -> clientPort = clientAddr.sin_port;
         // Read from client
         pthread_t thread;
-        if (pthread_create(&thread, NULL, this->clientHandle, (void*)clientArgsVoid) == -1)
+        if (pthread_create(&thread, NULL, this->clientHandle, (void*)clientArgsVoid) == ERROR_EXIT)
         {
-            std::cout << "Error when create a new thread.";
+            #ifdef DEBUG
+                std::cout << "5#:Error when create a new thread." << std::endl;
+            #endif
             break;
         }
-        void** status;
-        pthread_join(thread, status);
+        // void** status;
+        pthread_join(thread, NULL);
     }
 
     int shutdownThreadRet = shutdown(serverSocket,SHUT_WR);
-    if (shutdownThreadRet == -1)
+    if (shutdownThreadRet == ERROR_EXIT)
     {
-        std::cout << "shutdownThread Error." << std::endl;
+        #ifdef DEBUG
+            std::cout << "6#:shutdownThread Error." << std::endl;
+        #endif
     }
 
     // Close socket
@@ -68,72 +80,18 @@ int Server::start()
 
 void* Server::clientHandle(void* clientArgsVoid)
 {
-	Response response;
-	clientArgs* clientSocketArgs = reinterpret_cast<clientArgs*>(clientArgsVoid);
-    char receiveStr[8192] = {0};
-    while(true)
-    {	
-    	std::memset(&receiveStr, 0, sizeof(receiveStr));
-    	// receive timeout
-    	struct timeval timeout = {3, 0};
-    	if (setsockopt(clientSocketArgs -> clientSocket, SOL_SOCKET,SO_RCVTIMEO, (char*)&timeout,sizeof(struct timeval)) == -1)
-    	{
-    		std::cout << "time out" << std::endl;
-    		break;
-    	}
-    	
-    	// read by char
-    	char c = '\0';
-    	int i = 0;
-    	while(read(clientSocketArgs -> clientSocket, &c, sizeof(c)) > 0)
-    	{
-    		receiveStr[i++] = c;
-    		if (c == '\n')
-    		{
-                // std::cout << "Add: " << receiveStr << std::endl;
-    			if (!response.getRequest()->addHeader(receiveStr))
-    			{
-					std::cout << "Cannot add headers: " << receiveStr << std::endl;
-				}
-                break;
-    		}
-    	}
-        if (response.getRequest()->isEnd())
-        {
-            std::cout << "send response --> " << std::endl;
-            
+    clientArgs* clientSocketArgs = reinterpret_cast<clientArgs*>(clientArgsVoid);
+    Manage* manager = new Manage(clientSocketArgs->clientSocket,  clientSocketArgs->clientIP, clientSocketArgs->clientPort);
 
-            char* responseStr = new char[8192];
-            responseStr = response.getResponseHeaders();
-            // std::cout << "test#2: " << responseStr << std::endl;
-            
-            std::cout << write(clientSocketArgs -> clientSocket, responseStr, strlen(responseStr)) << std::endl;
-            std::memset(&responseStr, 0, sizeof(responseStr));
-
-            
-            // FILE *fp = fopen("/home/lc4t/Documents/git/WebServer/html/200.html", "rb");
-            
-            FILE *fp = response.getPage();
-            if (fp == NULL)
-            {
-                std::cout << "Server return NULL file" << std::endl;
-                break;
-            }
-            char buffer[8192];
-            int nCount = 0;
-            while( (nCount = fread(buffer, 1, sizeof(buffer), fp)) > 0)
-            {
-                std::cout << write(clientSocketArgs -> clientSocket, &buffer, nCount) << std::endl;    // must nCount, not sizeof it
-            }
-            std::memset(&buffer, 0, sizeof(buffer));
-            break;
-            
-        }
+    if (manager->start() != SUCCESS)
+    {
+        #ifdef DEBUG
+            std::cout << "7#:Not exit success." << std::endl;
+        #endif
     }
 
-    std::cout << "CLOSE:" << clientSocketArgs -> clientIP << ":" << clientSocketArgs -> clientPort << std::endl;
-    shutdown(clientSocketArgs -> clientSocket,  SHUT_RDWR);
-    close(clientSocketArgs -> clientSocket);
+
+
 }
 
 int Server::testServerHello()
@@ -245,7 +203,7 @@ int Server::testServerFileDownload(char* filename)
     // Close socket
     shutdown(clientSocket,  SHUT_RDWR);
     close(clientSocket);
-    
+
     close(serverSocket);
 
     return 0;
@@ -291,7 +249,7 @@ int Server::testMultiThread()
             std::cout << "Error when create a new thread.";
             break;
         }
-        
+
     }
     int shutdownThreadRet = shutdown(serverSocket,SHUT_WR);
     if (shutdownThreadRet == -1)
@@ -307,7 +265,7 @@ int Server::testMultiThread()
 }
 
 void* Server::testMultiThreadFunction(void* testMultiThreadArgs)
-{	
+{
 	clientArgs* clientSocketArgs = reinterpret_cast<clientArgs*>(testMultiThreadArgs);
     char receiveStr[8192] = {0};
     while(true)
@@ -372,7 +330,7 @@ int Server::testResponse()
             std::cout << write(clientSocket, &buffer, nCount) << std::endl;    // must nCount, not sizeof it
         }
         std::memset(&buffer, 0, sizeof(buffer));
-            
+
         shutdown(clientSocket,  SHUT_RDWR);
         close(clientSocket);
     }
@@ -390,4 +348,3 @@ Server::~Server()
 {
 
 }
-

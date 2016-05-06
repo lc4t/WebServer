@@ -1,12 +1,12 @@
 CC = g++
-CFLAGS = -g -lpthread
+CFLAGS = -g -lpthread -std=c++11
 targets = WebServer
-obj = main.o Request.o Server.o Response.o
+obj = main.o Request.o Manage.o Server.o StaticPage.o Page.o PHP.o
 
 
 
 main: $(obj)
-	$(CC) $(CFLAGS)  -o $(targets) $(obj)
+	$(CC) $(CFLAGS) -o $(targets) $(obj)
 
 main.o: headers/Server.h
 	$(CC) $(CFLAGS) -c main.cpp
@@ -14,11 +14,23 @@ main.o: headers/Server.h
 Server.o: headers/Server.h
 	$(CC) $(CFLAGS) -c sources/Server.cpp
 
+Manage.o: headers/Manage.h
+	$(CC) $(CFLAGS) -c sources/Manage.cpp
+
 Request.o: headers/Request.h
 	$(CC) $(CFLAGS) -c sources/Request.cpp
 
-Response.o: headers/Response.h
-	$(CC) $(CFLAGS) -c sources/Response.cpp
+Page.o: headers/Page.h
+		$(CC) $(CFLAGS) -c sources/Page.cpp
+
+StaticPage.o: headers/StaticPage.h
+	$(CC) $(CFLAGS) -c sources/StaticPage.cpp
+
+PHP.o: headers/PHP.h
+	$(CC) $(CFLAGS) -c sources/PHP.cpp
+
+
+
 
 
 # main.o: Server.h
@@ -28,7 +40,10 @@ Response.o: headers/Response.h
 # Server.o: Server.h
 
 
-.PHONY : clean
+.PHONY : clean r
 
 clean:
-	rm -f $(targets) $(obj)
+	rm -f $(obj)
+
+r:
+	rm -f $(targets) $(obj);make

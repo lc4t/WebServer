@@ -1,26 +1,12 @@
-/*
- * Server.h
- *
- *  Created on: 2016年4月12日
- *      Author: lc4t
- */
-
 #ifndef SERVER_H_
 #define SERVER_H_
 
-#include <arpa/inet.h>
-#include <cstring>
-#include <iostream>
-#include <netinet/in.h>
-#include <pthread.h>
-#include "Response.h"
-#include <signal.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
-#define SERVER_PORT 8888
-#define SERVER_CLIENT_NUM 3
+#include "../config.hpp"
+
+#include "Manage.h"
+
+
 
 class Server
 {
@@ -35,7 +21,7 @@ class Server
         ///
 
         int start();
-        
+
         virtual ~Server();
 
     private:
@@ -52,4 +38,4 @@ class Server
 
 };
 
-#endif /* SERVER_H_ */
+#endif
