@@ -1,10 +1,3 @@
-/*
- * Server.cpp
- *
- *  Created on: 2016年4月12日
- *      Author: lc4t
- */
-
 #include "../headers/Server.h"
 
 Server::Server()
