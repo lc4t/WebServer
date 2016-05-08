@@ -71,12 +71,12 @@ int StaticPage::setPage()
             // visit
             else
             {
-                // secure
-                if (this->dir.find("../") != std::string::npos)
-                {
-                    std::cout << "52#danger:" << "What are you doing?" << std::endl;
-                    return ERROR_EXIT;
-                }
+                // secure , should set user
+                // if (this->dir.find("../") != std::string::npos)
+                // {
+                //     std::cout << "52#danger:" << "What are you doing?" << std::endl;
+                //     return ERROR_EXIT;
+                // }
 
                 // deal with request
                 char* path = new char[MAX_PATH_LENGTH]();

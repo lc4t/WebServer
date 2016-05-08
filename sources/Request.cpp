@@ -3,24 +3,40 @@
 Request::Request()
 {
     this->requestlength = 0;
-    this->doubleRN = false;
+    this->countRN = 0;
 }
 
 
 bool Request::add(std::string str)
 {
-    this->requestlength += str.length();
-    #ifdef DEBUG
-        std::cout << "29#CurrentLength:" << this->requestlength << std::endl;
-    #endif
+    this->countRN = 0;
+    std::cout << "--:" << str << std::endl;
+    // if (this->countRN == 1)
+    // {
+    //     this->requestlength += str.length();
+    // }
+
+    // #ifdef DEBUG
+    //     std::cout << "29#RN:" << this->requestlength << std::endl;
+    // #endif
     if (str == "\r\n")
     {
-        std::cout << "30#: \\r\\n over" << std::endl;
-        this->doubleRN = true;
+        this->countRN++;
+        std::cout << "30#: \\r\\n over#"<< this->countRN << std::endl;
         return true;
     }
     if (this->isSetHeaders(HEAD_LINE))
     {
+
+        // if (this->countRN == 1) // waiting for params
+        // {
+        //     this->params += str;
+        //     #ifdef DEBUG
+        //         std::cout << "50#postParamsis:" << this->params << std::endl;
+        //     #endif
+        //     return true;
+        // }
+        // this->countRN = 0;
         std::string key;
         std::string value;
 
@@ -38,9 +54,11 @@ bool Request::add(std::string str)
                 return true;
             }
         }
+
     }
     else
     {
+        // this->countRN = 0;
         if (this->setRequestLine(str))
         {
             return true;
@@ -52,17 +70,28 @@ bool Request::add(std::string str)
     }
 }
 
+int Request::getCountRN()
+{
+    return this->countRN;
+}
+
 bool Request::isEnd()
 {
+    #ifdef DEBUG
+        std::cout << "38isEnd#:<" << this->getMethod() << ">" << "<" << this->getHeaderByName("Content-Length") << ">" << std::endl;
+    #endif
     if (this->getMethod() == "GET")
     {
-        return this->doubleRN;
+        return (this->countRN == 1);
     }
-    else if (this->getMethod() == "POST" && this->isSetHeaders("Content_Length"))
+    else if (this->getMethod() == "POST" && this->countRN == 1)
     {
-        std::cout << "32#isendPOST:" << this->requestlength << ":" <<  atoi(this->getHeaderByName("Content_Length").data()) << std::endl;
-        if (this->requestlength >= atoi(this->getHeaderByName("Content_Length").data()))
+        std::cout << "32#isendPOST:" << this->isSetHeaders("Content-Length") << ":"<< this->requestlength << ":" <<  atoi(this->getHeaderByName("Content-Length").data()) << std::endl;
+        if (this->isSetHeaders("Content-Length") && this->params.length() == this->getContentLength())
         {
+            #ifdef DEBUG
+                std::cout << "33isEnd#:<" << "True" << std::endl;
+            #endif
             return true;
         }
     }
@@ -71,6 +100,9 @@ bool Request::isEnd()
 
 bool Request::setRequestLine(std::string requestLine)
 {
+    #ifdef DEBUG
+        std::cout << "39#:" <<  requestLine << std::endl;
+    #endif
     int length = requestLine.length();
     if (length < 14 || length > 2048)
     {
@@ -101,13 +133,16 @@ bool Request::setRequestLine(std::string requestLine)
 
 bool Request::isSetHeaders(std::string key)
 {
-    if (this->headers.find(key) == this->headers.end())
+    #ifdef DEBUG
+        std::cout << "38isset#:" << key << ":" << !(this->headers.find(key) == this->headers.end()) << std::endl;
+    #endif
+    if (!(this->headers.find(key) == this->headers.end())) // true is not found
     {
-        return false;
+        return true;
     }
     else
     {
-        return true;
+        return false;
     }
 }
 
@@ -185,7 +220,21 @@ std::string Request::setParams(std::string str)
     return EMPTY_STRING;
 }
 
+std::string Request::getPostLine()
+{
+    // std::string postLine = "Content-Type";
+    return "URLencode";
+}
 
+int Request::getContentLength()
+{
+    return atoi(this->getHeaderByName("Content-Length").data());
+}
+
+int Request::setPostParams(std::string str)
+{
+    this->params = str;
+}
 
 std::string Request::getMethod()
 {

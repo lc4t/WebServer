@@ -39,6 +39,7 @@
 #include <cstdio>
 #include <cstring>
 #include <exception>
+#include <fcntl.h>
 #include <iostream>
 #include <iterator>
 #include <map>

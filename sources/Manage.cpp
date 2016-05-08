@@ -12,12 +12,16 @@ int Manage::start()
 {
     char receiveStr[MAX_TRANSPORT_STR_LENGTH] = {0};
     Request* request = new Request();
+
+    struct timeval timeout = {CLIENT_TIMEOUT, 0};
+    setsockopt(this->clientSocket, SOL_SOCKET,SO_RCVTIMEO, (char*)&timeout,sizeof(struct timeval));
+    // setsockopt(this->clientSocket, SOL_SOCKET,SO_SNDTIMEO, (char*)&timeout,sizeof(struct timeval));
+    socklen_t len=sizeof(timeout);
     while(true)
     {
         std::memset(&receiveStr, 0, sizeof(receiveStr));
         // receive timeout
-        struct timeval timeout = {CLIENT_TIMEOUT, 0};
-        if (setsockopt(this->clientSocket, SOL_SOCKET,SO_RCVTIMEO, (char*)&timeout,sizeof(struct timeval)) == -1)
+        if (errno == EWOULDBLOCK)
         {
             #ifdef DEBUG
                 std::cout << "8#:time out" << std::endl;
@@ -28,12 +32,18 @@ int Manage::start()
         // read by char, send to Request
         char c = '\0';
         int i = 0;
-        while(read(this->clientSocket, &c, sizeof(c)) > 0)
+        int t = 0;
+        while((t = read(this->clientSocket, &c, sizeof(c))) > 0 && request->getCountRN() < 1)
         {
+            #ifdef DEBUG
+                std::cout << "61#t=" << t << receiveStr << std::endl;
+            #endif
             receiveStr[i++] = c;
             if (c == '\n')
             {
-                // std::cout << "Add: " << receiveStr << std::endl;
+                #ifdef DEBUG
+                    std::cout << "62#Add: " << receiveStr << std::endl;
+                #endif
                 if (!request->add(receiveStr))
                 {
                     #ifdef DEBUG
@@ -43,6 +53,29 @@ int Manage::start()
                 break;
             }
         }
+
+        while(request->getMethod() == "POST" && request->getCountRN() == 1)
+        {
+            std::memset(&receiveStr, 0, sizeof(receiveStr));
+            if (request->getPostLine() == "URLencode")
+            {
+
+                int length = request->getContentLength();
+                for (int i = 0; i < length; i++)
+                {
+                    read(this->clientSocket, &c, sizeof(c));
+                    receiveStr[i] = c;
+                }
+                request->setPostParams(receiveStr);
+                std::cout << "63#" << receiveStr << "#" << request->getParams() << std::endl;
+                break;
+            }
+        }
+
+
+
+        // get post content
+
 
         // check and response
         if (request->isEnd())
@@ -187,7 +220,7 @@ int Manage::start()
 int Manage::end()
 {
     #ifdef DEBUG
-        std::cout << "12#:CLOSE:" << this->clientIP << ":" << this->clientPort << std::endl;
+        std::cout << "-1#:CLOSE:" << this->clientIP << ":" << this->clientPort << std::endl;
     #endif
     shutdown(this->clientSocket,  SHUT_RDWR);
     close(this->clientSocket);

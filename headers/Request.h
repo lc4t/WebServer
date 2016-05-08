@@ -19,7 +19,11 @@ class Request
         std::string getFilename();
         std::string getParams();
         std::string getProtocol();
+        int setPostParams(std::string str);
         std::map<std::string, std::string> getCookies();
+        std::string getPostLine();
+        int getContentLength();
+        int getCountRN();
     private:
         int requestlength;
 
@@ -39,7 +43,7 @@ class Request
         std::string getHeaderByName(std::string name);
         std::map<std::string, std::string> headers;
 
-        bool doubleRN;
+        int countRN;
 
 
         bool isSetHeaders(std::string key);

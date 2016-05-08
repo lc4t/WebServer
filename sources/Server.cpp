@@ -7,31 +7,32 @@ Server::Server()
 
 int Server::start()
 {
-	int serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);        // create socket
-    struct sockaddr_in serverAddr;                                        // bind IP/port
+	int serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);               // create socket
+    struct sockaddr_in serverAddr;                                              // bind IP/port
     std::memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;                                    // IPV4
-    serverAddr.sin_addr.s_addr = inet_addr(LOCALHOST_IP);                // bind IP
-    serverAddr.sin_port = htons(SERVER_PORT);                                    // bind port
+    serverAddr.sin_family = AF_INET;                                            // IPV4
+    serverAddr.sin_addr.s_addr = inet_addr(LOCALHOST_IP);                       // bind IP
+    serverAddr.sin_port = htons(SERVER_PORT);                                   // bind port
     bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-
+	int flags = fcntl(serverSocket, F_GETFL, 0);
+    fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK);			                //Non-blocking
     listen(serverSocket, SERVER_CLIENT_NUM);
     #ifdef DEBUG
         std::cout << "1#:Listen @ " << SERVER_PORT << std::endl;
     #endif
     while(true)
     {
-        #ifdef DEBUG
-    	   std::cout << "2#:Waiting new connection" << std::endl;
-        #endif
+        // #ifdef DEBUG
+    	//    std::cout << "2#:Waiting new connection" << std::endl;
+        // #endif
         struct sockaddr_in clientAddr;
         socklen_t clientAddrSize = sizeof(clientAddr);
         int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrSize);
         if (clientSocket == ERROR_EXIT)
         {
-            #ifdef DEBUG
-                std::cout << "3#:Accept Error." << std::endl;
-            #endif
+            // #ifdef DEBUG
+            //     std::cout << "3#:Accept Error." << std::endl;
+            // #endif
             continue;
         }
         else
