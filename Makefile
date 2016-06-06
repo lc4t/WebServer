@@ -46,4 +46,7 @@ clean:
 	rm -f $(obj)
 
 r:
-	rm -f $(targets) $(obj);make
+	pkill WebServer;rm -f $(targets) $(obj);make
+
+rn:
+	pkill WebServer;rm -f $(targets) $(obj);make;./WebServer

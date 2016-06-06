@@ -18,12 +18,15 @@ class Request
         std::string getDir();
         std::string getFilename();
         std::string getParams();
+        std::map<std::string, std::string> getParamsMap();
         std::string getProtocol();
         int setPostParams(std::string str);
         std::map<std::string, std::string> getCookies();
         std::string getPostLine();
+        std::string getHeaderByName(std::string name);
         int getContentLength();
         int getCountRN();
+        void setPostEnd();
     private:
         int requestlength;
 
@@ -40,11 +43,11 @@ class Request
 
         bool setRequestLine(std::string requestLine);
 
-        std::string getHeaderByName(std::string name);
+
         std::map<std::string, std::string> headers;
 
         int countRN;
-
+        bool postEnd;
 
         bool isSetHeaders(std::string key);
 

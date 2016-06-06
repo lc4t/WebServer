@@ -32,12 +32,10 @@ int Manage::start()
         // read by char, send to Request
         char c = '\0';
         int i = 0;
-        int t = 0;
-        while((t = read(this->clientSocket, &c, sizeof(c))) > 0 && request->getCountRN() < 1)
+
+        // get headers
+        while((read(this->clientSocket, &c, sizeof(c))) > 0 && request->getCountRN() < 1)
         {
-            #ifdef DEBUG
-                std::cout << "61#t=" << t << receiveStr << std::endl;
-            #endif
             receiveStr[i++] = c;
             if (c == '\n')
             {
@@ -54,12 +52,15 @@ int Manage::start()
             }
         }
 
+        // get post params
         while(request->getMethod() == "POST" && request->getCountRN() == 1)
         {
+            std::cout << "go/to/POST/" << std::endl;
             std::memset(&receiveStr, 0, sizeof(receiveStr));
-            if (request->getPostLine() == "URLencode")
+            // urlencode
+            if (request->getHeaderByName("Content-Type") == "application/x-www-form-urlencoded")
             {
-
+              // yeah, that's ok, form-data ok
                 int length = request->getContentLength();
                 for (int i = 0; i < length; i++)
                 {
@@ -67,9 +68,61 @@ int Manage::start()
                     receiveStr[i] = c;
                 }
                 request->setPostParams(receiveStr);
-                std::cout << "63#" << receiveStr << "#" << request->getParams() << std::endl;
+                #ifdef DEBUG
+                    std::cout << "63#" << receiveStr << "#" << request->getParams() << std::endl;
+                #endif
                 break;
             }
+            // form-data
+            else    // Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryCkL5QNFEBgmA5xhU
+            {
+                #ifdef DEBUG
+                    std::cout << "65#" << request->getHeaderByName("Content-Type") << std::endl;
+                #endif
+                std::string contentTypeStr = request->getHeaderByName("Content-Type").substr(0, request->getHeaderByName("Content-Type").length() - 2);
+                std::string boundary = "--";
+                boundary += contentTypeStr.substr(contentTypeStr.find("boundary=") + 9);
+                std::string boundaryEnd = boundary + "--";
+
+
+                // read
+                int i = 0;
+                while (read(this->clientSocket, &c, sizeof(c) > 0))
+                {
+                    receiveStr[i++] = c;
+                    if (c == '\n' && receiveStr == (boundary + "\r").data())    // get start line
+                    {
+                        std::memset(&receiveStr, 0, sizeof(receiveStr));
+
+                    }
+                }
+
+                // std::cout << contentTypeStr.substr(contentTypeStr.find("boundary=") + 9) << std::endl;
+                /*
+                ------WebKitFormBoundaryTxkZBXWttnEnkSi9
+                Content-Disposition: form-data; name="password"
+
+                dhaowidaksljdkasjdasd
+                ------WebKitFormBoundaryTxkZBXWttnEnkSi9
+                Content-Disposition: form-data; name="qweqweqweqweqwqwe"
+
+                qweqweqweqw
+                ------WebKitFormBoundaryTxkZBXWttnEnkSi9--
+                */
+                // for (int i = 0; i < request->getContentLength(); i++)
+                // {
+                //     read(this->clientSocket, &c, sizeof(c));
+                //     receiveStr[i] = c;
+                // }
+
+                #ifdef DEBUG
+                    std::cout << "64#" << receiveStr << std::endl;
+                #endif
+
+                request->setPostEnd();
+                break;
+            }
+
         }
 
 
@@ -162,49 +215,101 @@ int Manage::start()
                 std::cout << "14#filetype:" << filetype.first << filetype.second << "@" << type << std::endl;
             #endif
 
-            switch(type)
+            if (request->getParams().length() == 0)
             {
-                case STATIC_PAGE_TYPE:
+                switch(type)
                 {
-                    // send headers
-                    StaticPage* page = new StaticPage(request->getProtocol(), request->getDir(), request->getFilename(), filetype.second);
-                    char* responseHeadersStr = new char[MAX_TRANSPORT_STR_LENGTH]();
-                    responseHeadersStr = page->getResponseHeader();
-                    std::cout << "15#resHeaders:" << write(this->clientSocket, responseHeadersStr, strlen(responseHeadersStr)) << std::endl;
-                    delete responseHeadersStr;
-
-                    FILE* file = new FILE;
-                    file = page->getPage();
-                    // char buffer[MAX_TRANSPORT_STR_LENGTH];
-                    char* buffer = new char[MAX_TRANSPORT_STR_LENGTH]();
-                    int nCount = 0;
-                    while( (nCount = fread(buffer, 1, sizeof(buffer), file)) > 0)
+                    case STATIC_PAGE_TYPE:
                     {
-                        std::cout << "16#page:" << write(this->clientSocket, buffer, nCount) << std::endl;    // must nCount, not sizeof it
+                        // send headers
+                        StaticPage* page = new StaticPage(request->getProtocol(), request->getDir(), request->getFilename(), filetype.second);
+                        char* responseHeadersStr = new char[MAX_TRANSPORT_STR_LENGTH]();
+                        responseHeadersStr = page->getResponseHeader();
+                        std::cout << "15#resHeaders:" << write(this->clientSocket, responseHeadersStr, strlen(responseHeadersStr)) << std::endl;
+                        delete responseHeadersStr;
+
+                        FILE* file = new FILE;
+                        file = page->getPage();
+                        // char buffer[MAX_TRANSPORT_STR_LENGTH];
+                        char* buffer = new char[MAX_TRANSPORT_STR_LENGTH]();
+                        int nCount = 0;
+                        while( (nCount = fread(buffer, 1, sizeof(buffer), file)) > 0)
+                        {
+                            std::cout << "16#page:" << write(this->clientSocket, buffer, nCount) << std::endl;    // must nCount, not sizeof it
+                        }
+                        delete buffer;
+                        delete file;
+
+                        break;
                     }
-                    delete buffer;
-                    delete file;
 
-                    break;
+                    case PHP_PAGE_TYPE:
+                    {
+                        PHP* page = new PHP(request->getProtocol(), request->getDir(), request->getFilename(), filetype.second);
+                        break;
+                    }
+
+                    case NOT_SET_PAGE:
+                        break;
+                    default:
+                        break;
                 }
-
-                case PHP_PAGE_TYPE:
-                {
-                    PHP* page = new PHP(request->getProtocol(), request->getDir(), request->getFilename(), filetype.second);
-                    break;
-                }
-
-                case NOT_SET_PAGE:
-                    break;
-                default:
-                    break;
+                break;
             }
+            else
+            {
+                switch(type)
+                {
+                    case STATIC_PAGE_TYPE:
+                    {
+                        // send headers
+                        StaticPage* page = new StaticPage(request->getProtocol(), request->getDir(), request->getFilename(), filetype.second);
+                        char* responseHeadersStr = new char[MAX_TRANSPORT_STR_LENGTH]();
+                        responseHeadersStr = page->getResponseHeader();
+                        std::cout << "15#resHeaders:" << write(this->clientSocket, responseHeadersStr, strlen(responseHeadersStr)) << std::endl;
+                        delete responseHeadersStr;
 
 
-            break;
+
+
+                        // std::map<std::string, std::string> paramsMap =
+                        // file = page->getPage(request->getMethod(), request->getParams);
+                        char* buffer = new char[MAX_TRANSPORT_STR_LENGTH]();
+                        for (auto i : request->getParamsMap())
+                        {
+                            #ifdef DEBUG
+                                std::cout << "107#:" << i.first << "," << i.second << std::endl;
+                            #endif
+                            std::sprintf(buffer, "%s%s", buffer, i.first.data());
+                            std::sprintf(buffer, "%s%s", buffer, "=");
+                            std::sprintf(buffer, "%s%s", buffer, i.second.data());
+                            std::sprintf(buffer, "%s%s", buffer, "<br />");
+                        }
+                        write(this->clientSocket, buffer, strlen(buffer));
+                        delete buffer;
+
+
+                        break;
+                    }
+
+                    case PHP_PAGE_TYPE:
+                    {
+                        PHP* page = new PHP(request->getProtocol(), request->getDir(), request->getFilename(), filetype.second);
+                        break;
+                    }
+
+                    case NOT_SET_PAGE:
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
         }
 
+
     }
+
 
     if (this->end() == SUCCESS)
     {

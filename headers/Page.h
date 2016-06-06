@@ -10,7 +10,6 @@ class Page
         std::string ostreamType;
         char* getResponseHeader();
         void* getPage();    // need override
-
     protected:
         // target
         std::string dir;

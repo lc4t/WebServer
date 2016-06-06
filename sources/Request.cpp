@@ -4,13 +4,18 @@ Request::Request()
 {
     this->requestlength = 0;
     this->countRN = 0;
+    this->postEnd = false;
 }
 
+void Request::setPostEnd()
+{
+    this->postEnd = true;
+}
 
 bool Request::add(std::string str)
 {
     this->countRN = 0;
-    std::cout << "--:" << str << std::endl;
+    std::cout << "add--:" << str << std::endl;
     // if (this->countRN == 1)
     // {
     //     this->requestlength += str.length();
@@ -87,10 +92,17 @@ bool Request::isEnd()
     else if (this->getMethod() == "POST" && this->countRN == 1)
     {
         std::cout << "32#isendPOST:" << this->isSetHeaders("Content-Length") << ":"<< this->requestlength << ":" <<  atoi(this->getHeaderByName("Content-Length").data()) << std::endl;
-        if (this->isSetHeaders("Content-Length") && this->params.length() == this->getContentLength())
+        if (getHeaderByName("Content-Type") == "application/x-www-form-urlencoded" && this->params.length() == this->getContentLength())
         {
             #ifdef DEBUG
-                std::cout << "33isEnd#:<" << "True" << std::endl;
+                std::cout << "33postEnd#:<" << "True" << std::endl;
+            #endif
+            return true;
+        }
+        else if (this->postEnd)
+        {
+            #ifdef DEBUG
+                std::cout << "33postEnd#:<" << "True" << std::endl;
             #endif
             return true;
         }
@@ -133,9 +145,9 @@ bool Request::setRequestLine(std::string requestLine)
 
 bool Request::isSetHeaders(std::string key)
 {
-    #ifdef DEBUG
-        std::cout << "38isset#:" << key << ":" << !(this->headers.find(key) == this->headers.end()) << std::endl;
-    #endif
+    // #ifdef DEBUG
+    //     std::cout << "38isset#:" << key << ":" << !(this->headers.find(key) == this->headers.end()) << std::endl;
+    // #endif
     if (!(this->headers.find(key) == this->headers.end())) // true is not found
     {
         return true;
@@ -216,8 +228,10 @@ std::string Request::setParams(std::string str)
         return EMPTY_STRING;
     }
     std::string paramsStr = str.substr(leftPos + 1, length - 2 - leftPos + 1);
-    std::cout << paramsStr << std::endl;
-    return EMPTY_STRING;
+    #ifdef DEBUG
+        std::cout << "35#params:" << paramsStr << std::endl;
+    #endif
+    return paramsStr;
 }
 
 std::string Request::getPostLine()
@@ -298,4 +312,31 @@ std::string Request::getProtocol()
 std::string Request::getHeaderByName(std::string name)
 {
     return this->headers[name];
+}
+
+std::map<std::string, std::string> Request::getParamsMap()
+{
+    std::map<std::string, std::string> paramsMap;
+    int firstStart = 0, i = 0;
+    std::string str;
+
+
+    while(i <= this->params.length())
+    {
+        if (i == this->params.length() || this->params[i] == '&')  // split
+        {
+            str = this->params.substr(firstStart, i - firstStart);
+            firstStart = i + 1;
+            for (int j = 0; j < str.length(); j++)
+            {
+                if (str[j] == '=')
+                {
+                    paramsMap[str.substr(0, j)] = str.substr(j + 1);
+                }
+            }
+        }
+        i++;
+    }
+
+    return paramsMap;
 }

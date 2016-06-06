@@ -15,3 +15,4 @@ A WebServer, c++
     2016.4.30 #10: add content type judge, png/jpg/html/txt ok
     2016.5.6 #11: Refactor done
     2016.5.9 #12: get post urlencode params done
+    2016.6.6 #13: post ok;return params ok;
