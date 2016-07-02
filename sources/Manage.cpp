@@ -152,7 +152,7 @@ int Manage::start()
 
             //  .xxx and MIME, then give the next class
             int type = NOT_SET_PAGE;
-            if (filetype.first == ".html" || filetype.first == ".png" ||filetype.first == ".txt" || filetype.first == ".jpg" || filetype.first == ".ico")
+            if (filetype.first == ".html" || filetype.first == ".png" ||filetype.first == ".txt" || filetype.first == ".jpg" || filetype.first == ".ico" || filetype.first == ".js" || filetype.first == ".css")
             {
                 if (filetype.first == ".html")
                 {
@@ -173,6 +173,14 @@ int Manage::start()
                 else if (filetype.first == ".ico")
                 {
                     filetype.second = "image/x-icon";
+                }
+                else if (filetype.first == ".js")
+                {
+                    filetype.second = "application/x-javascript";
+                }
+                else if (filetype.first == ".css")
+                {
+                    filetype.second = "text/css";
                 }
                 else
                 {

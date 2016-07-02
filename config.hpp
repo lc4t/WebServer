@@ -23,7 +23,7 @@
 #define PHP_PAGE_TYPE                   2
 #define SERVER_CLIENT_NUM               20
 #define SEVER_ERROR_HTML                "/500.html"
-#define SERVER_PORT                     8888
+#define SERVER_PORT                     7777
 #define STATIC_PAGE_TYPE                1
 #define STRING_POINTER                  "__STRING_POINTER__"
 #define SUCCESS                         1
